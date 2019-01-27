@@ -1,44 +1,57 @@
-{		
-     "name": "Calendar",		
-     "skillMetadata": {		
-         "sections": [		
-             {		
-                 "name": "Stuff",		
-                 "fields": [
-                 	{     
-                         "name": "server_type",       
-                         "type": "text",        
-                         "label": "server/local",      
-                         "value": ""
-                     },
-                     {		
-                         "name": "username",		
-                         "type": "text",		
-                         "label": "Username",		
-                         "value": ""
-                     },
-                     {      
-                         "name": "password",       
-                         "type": "password",        
-                         "label": "Password",      
-                         "value": ""
-                     },
-                     {      
-                         "name": "port",       
-                         "type": "number",        
-                         "label": "port",
-                         "value": ""
-                     },
-                     {      
-                         "name": "server_address",       
-                         "type": "text",        
-                         "label": "address",      
-                         "value": ""
-                     }
-
-                ]
-            }
-
+{
+  "name": "Calendar",
+  "color": "#BDC3C7",
+  "skillMetadata": {
+    "sections": [
+      {
+        "name": "Calendar Location",
+        "fields": [
+          {
+            "type": "label",
+            "label": "By default, the calendar skill defaults to saving your calendar on your device. However, if you wish to connect to a iCal server, you can select the setting here then fill out the information below."
+          },
+          {
+            "name": "server_type",
+            "type": "select",
+            "label": "Calendar Location",
+            "value": "local",
+            "options": "Locally on the device|local;iCal Server|server"
+          }
         ]
-    }		
-} 
+      },
+      {
+        "name": "iCal Login",
+        "fields": [
+          {
+            "type": "label",
+            "label": "<b>If you selected iCal Server</b> above, fill out the form here, to connect Mycroft to your iCal account."
+          },
+          {
+            "name": "username",
+            "type": "text",
+            "label": "Username",
+            "value": ""
+          },
+          {
+            "name": "password",
+            "type": "password",
+            "label": "Password",
+            "value": ""
+          },
+          {
+            "name": "port",
+            "type": "number",
+            "label": "port",
+            "value": null
+          },
+          {
+            "name": "server_address",
+            "type": "text",
+            "label": "address",
+            "value": ""
+          }
+        ]
+      }
+    ]
+  }
+}

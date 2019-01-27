@@ -1,0 +1,44 @@
+{		
+     "name": "Calendar",		
+     "skillMetadata": {		
+         "sections": [		
+             {		
+                 "name": "Stuff",		
+                 "fields": [
+                 	{     
+                         "name": "server_type",       
+                         "type": "text",        
+                         "label": "server/local",      
+                         "value": ""
+                     },
+                     {		
+                         "name": "username",		
+                         "type": "text",		
+                         "label": "Username",		
+                         "value": ""
+                     },
+                     {      
+                         "name": "password",       
+                         "type": "password",        
+                         "label": "Password",      
+                         "value": ""
+                     },
+                     {      
+                         "name": "port",       
+                         "type": "number",        
+                         "label": "port",
+                         "value": ""
+                     },
+                     {      
+                         "name": "server_address",       
+                         "type": "text",        
+                         "label": "address",      
+                         "value": ""
+                     }
+
+                ]
+            }
+
+        ]
+    }		
+} 

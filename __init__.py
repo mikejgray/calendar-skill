@@ -17,35 +17,11 @@ from mycroft.util.parse import extract_datetime, normalize
 from mycroft.filesystem import FileSystemAccess
 from datetime import datetime, date, time
 import caldav
+import vobject
 import ics
 import arrow
-import vobject
 from caldav.elements import dav, cdav
 
-#For creating calendars
-new_vcal = """BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Example Corp.//CalDAV Client//EN
-BEGIN:VEVENT
-UID:{uid}
-DTSTAMP:{dtstamp}
-DTSTART:{dtstart}
-DTEND:{dtend}
-SUMMARY:{summary}
-END:VEVENT
-END:VCALENDAR
-"""
-
-#For already created calendars
-new_vcal = """
-BEGIN:VEVENT
-UID:{uid}
-DTSTAMP:{dtstamp}
-DTSTART:{dtstart}
-DTEND:{dtend}
-SUMMARY:{summary}
-END:VEVENT
-"""
 
 class Calendar(MycroftSkill):
     def __init__(self):
@@ -77,23 +53,77 @@ class Calendar(MycroftSkill):
         while not  event:
             #We need to get the event
             event = self.get_response("new.event.name")
-        utter = message.data["utterance"]
-        date, rest = extract_datetime(utter)
-        while rest == normalize(utter):
-            #We need to get the date
-            resp = self.get_response("new.event.date")
-            date, rest = extract_datetime(utter)
-        self.log.critical("date: "+ str(date)+ " event: "+event)
+
+        utterance = message.data['utterance']
+        date, rest = extract_datetime(utterance, datetime.now(), self.lang)
+        while rest == normalize(utterance):
+            utterance = self.get_response("new.event.date")
+            date, rest = extract_datetime(utterance)
+
+        self.log.info(" Calendar skill new event: date: "+ str(date)+ " event: "+event)
         #ADD EVENT
         server_type = self.check_server()
         if server_type == "Handled":
             return
         elif server_type == True:
             #Home
-            pass
-        elif server_type == None:
-            #Password local
-            pass
+            server_address = self.settings.get("server_address")
+            port = self.settings.get("port")
+            username = self.settings.get("username")
+            password = self.settings.get("password")
+            #start creating a vevent:
+            cal = vobject.iCalendar()
+            cal.add("vevent")
+            #add name
+            cal.vevent.add("summary").value = str(event)
+            #add date
+            cal.vevent.add('dtstart').value = date
+            # add it to the calendar
+            url = "http://{}:{}@{}:{}/".format(username, password, server_address, port)
+            try:
+                client = caldav.DAVClient(url)
+                principal = client.principal()
+
+                #Select calendar
+                events = []
+                for calendar in principal.calendars():
+                    calendar.add_event(str(cal.serialize()))
+                self.speak_dialog("new.event.summary", data={"event": str(event)})
+            except:
+                self.speak_dialog("error.logging.in")
+                return None
+
+        elif server_type is None:
+            # Password local
+            server_address = self.settings.get("server_address")
+            calendar = self.settings.get("calendar")
+            port = self.settings.get("port")
+            account_config = self.config_core.get("calendar", {})
+            username = account_config.get("username")
+            password = account_config.get("password")
+
+            # start creating a vevent:
+            cal = vobject.iCalendar()
+            cal.add("vevent")
+            # add name
+            cal.vevent.add("summary").value = str(event)
+            # add date
+            cal.vevent.add('dtstart').value = date
+            # add it to the calendar
+            url = "http://{}:{}@{}:{}/".format(username, password, server_address, port)
+            try:
+                client = caldav.DAVClient(url)
+                principal = client.principal()
+
+                # Select calendar
+                events = []
+                for calendar in principal.calendars():
+                    calendar.add_event(str(cal.serialize()))
+                self.speak_dialog("new.event.summary", data={"event": str(event)})
+            except:
+                self.speak_dialog("error.logging.in")
+                return None
+            
         elif server_type == False:
             #Local
             #The calendar is on the device
@@ -107,12 +137,20 @@ class Calendar(MycroftSkill):
                 #add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.append(e)
-                self.write_file("calendar.ics", c)
-                self.speak_dialog("new.event.summary")
+                c.events.apaddpend(e)
+                self.write_file("calendar.ics", str(c))
+                self.speak_dialog("new.event.summary", data={"event": str(event)})
             else:
                 #create calendar
-                pass
+                c = ics.Calendar()
+                e = ics.Event()
+                #add event
+                e.name = str(event)
+                e.begin = str(arrow.get(date))
+                c.events.add(e)
+                self.write_file("calendar.ics", str(c))
+                self.speak_dialog("new.event.summary", data={"event": str(event)})
+                
 
     def check_server(self):
         """Check if we are using file/server or direct user to setup
@@ -237,9 +275,10 @@ class Calendar(MycroftSkill):
 
     def write_file(self, filename, data):
         fs = FileSystemAccess(str(self.skill_id))
-        with open(filename, 'w') as data_file:
-            f.writelines(data)
-            return True
+        data_file = fs.open(filename, "w")
+        data_file.writelines(data)
+        data_file.close()
+        return True
 
 
 def create_skill():

@@ -1,0 +1,3 @@
+Heute hast du {{num_events}} Ereignisse. Das erste ist {{event}}.
+du hast heute {{num_events}} Termine. Der erste ist {{event}}.
+Der erste Termin, der heute in Ihrem Zeitplan steht, ist {{event}}.

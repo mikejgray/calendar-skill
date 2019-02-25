@@ -8,3 +8,4 @@ calendar-skill\.sublime-workspace
 
 \.idea/
 __pycache__/
+deploy\.sh

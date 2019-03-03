@@ -1,4 +1,3 @@
 vobject
-arrow
 ics
 caldav

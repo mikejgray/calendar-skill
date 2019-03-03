@@ -126,7 +126,7 @@ class Calendar(MycroftSkill):
                 # add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.apaddpend(e)
+                c.events.add(e)
                 self.write_file("calendar.ics", str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
             else:
@@ -154,10 +154,8 @@ class Calendar(MycroftSkill):
             if fs.exists("calendar.ics"):
                 # YAY! exists
                 calendar = self.read_file("calendar.ics")
-                c = ics.Calendar(calendar)
-                for event in c.events:
-                    event_date = event.begin.datetime
-                    if event_date.date() == date:
+                c = ics.Calendar(imports=calendar)
+                for event in c.timeline.on(day=arrow.get(date)):
                         event_dict = {"datetime": event.begin.datetime, "event": event.name}
                         events.append(event_dict)
                 return events

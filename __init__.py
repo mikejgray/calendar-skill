@@ -61,11 +61,11 @@ class Calendar(MycroftSkill):
     def handle_day_appoint(self, message):
         # clean/get date in utter
         utter = message.data["utterance"]
-        date = extract_datetime(utter)[0].date()
-        if date is None:
-            date = extract_datetime("today").date()
+        datetime = extract_datetime(utter)[0]
+        if datetime is None:
+            datetime = extract_datetime("today").date()
         # get events
-        events = self.get_events(date)
+        events = self.get_events(datetime)
         if events:
             # say first
             self.speak_dialog("day", data={"num_events": len(events), "event": events[0].get("event")})
@@ -126,7 +126,7 @@ class Calendar(MycroftSkill):
                 # add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.apaddpend(e)
+                c.events.add(e)
                 self.write_file("calendar.ics", str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
             else:
@@ -136,7 +136,7 @@ class Calendar(MycroftSkill):
                 # add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.add(e)
+                c.events.append(e)
                 self.write_file("calendar.ics", str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
 
@@ -154,10 +154,8 @@ class Calendar(MycroftSkill):
             if fs.exists("calendar.ics"):
                 # YAY! exists
                 calendar = self.read_file("calendar.ics")
-                c = ics.Calendar(calendar)
-                for event in c.events:
-                    event_date = event.begin.datetime
-                    if event_date.date() == date:
+                c = ics.Calendar(imports=calendar)
+                for event in c.timeline.on(day=arrow.get(date)):
                         event_dict = {"datetime": event.begin.datetime, "event": event.name}
                         events.append(event_dict)
                 return events

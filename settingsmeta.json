@@ -8,7 +8,7 @@
         "fields": [
           {
             "type": "label",
-            "label": "By default, the calendar skill defaults to saving your calendar on your device. However, if you wish to connect to a iCal server, you can select the setting here then fill out the information below."
+            "label": "By default, the calendar skill defaults to saving your calendar on your device. However, if you wish to connect to a iCal server, you can select the setting here then fill out the information below. You can also <a href='http://bit.ly/mycroft-calendar-ics'>learn more about ics files.</a>"
           },
           {
             "name": "server_type",
@@ -24,7 +24,7 @@
         "fields": [
           {
             "type": "label",
-            "label": "<b>If you selected iCal Server</b> above, fill out the form here, to connect Mycroft to your iCal account."
+            "label": "<b>If you selected iCal Server</b> above, fill out the form here, to connect Mycroft to your iCal account. If you wish not to enter this information in here, you can <a href='https://bit.ly/mycroft-calendar-local'>configure the skill on your device</a>"
           },
           {
             "name": "username",

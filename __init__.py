@@ -14,8 +14,10 @@
 #
 from mycroft import MycroftSkill, intent_file_handler
 from mycroft.util.parse import extract_datetime, normalize
+from mycroft.util.format import nice_time, nice_date, nice_date_time
+from mycroft.util.time import to_local, now_local
 from mycroft.filesystem import FileSystemAccess
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import caldav
 import vobject
 import ics
@@ -57,23 +59,47 @@ class Calendar(MycroftSkill):
             self.speak_dialog("setup")
             return
 
+
     @intent_file_handler('DayAppointment.intent')
     def handle_day_appoint(self, message):
         # clean/get date in utter
         utter = message.data["utterance"]
-        datetime = extract_datetime(utter)[0]
-        if datetime is None:
-            datetime = extract_datetime("today").date()
+        when = extract_datetime(utter)[0]
+        if when is None:
+            when = extract_datetime("today")
+        self.log.info(str(when))
         # get events
-        events = self.get_events(datetime)
+        events = self.get_events(when)
+        nice_when = nice_date(when, now=now_local())
         if events:
             # say first
-            self.speak_dialog("day", data={"num_events": len(events), "event": events[0].get("event")})
+            self.speak_dialog("day", data={"num_events": len(events), "event": events[0].get("event"),
+                                           "when": nice_when})
             # Say follow up
             for x in range(1, len(events)):
                 self.speak_dialog("day.followed", data={"event": events[x].get("event")})
         elif events is None or events == []:
-            self.speak_dialog("no.events")
+            self.speak_dialog("no.events", data={"when": nice_when})
+
+    @intent_file_handler('NumAppointments.intent')
+    def handle_num_appoint(self, message):
+        # clean/get date in utter
+        utter = message.data["utterance"]
+        when = extract_datetime(utter)[0]
+        if when is None:
+            when = extract_datetime("today")
+        self.log.info(str(when))
+        # get events
+        events = self.get_events(when)
+        nice_when = nice_date(when, now=now_local())
+        if events:
+            num_events = len(events)
+            if num_events == 1:
+                self.speak_dialog("num.event", data={"when": nice_when})
+            else:
+                self.speak_dialog("num.events", data={"num_events": num_events, "when": nice_when})
+        elif events is None or events == []:
+            self.speak_dialog("no.events", data={"when": nice_when})
 
     @intent_file_handler("AddAppointment.intent")
     def handle_add_appoint(self, message):
@@ -126,7 +152,7 @@ class Calendar(MycroftSkill):
                 # add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.add(e)
+                c.events.append(e)
                 self.write_file("calendar.ics", str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
             else:

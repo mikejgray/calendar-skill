@@ -23,11 +23,14 @@ import vobject
 import ics
 import arrow
 from caldav.elements import dav, cdav
-
+import yaml
+import time
 
 class Calendar(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
+
+    def update_credentials(self):
         self.server = False  # False for an ics file, true for a caldav server -regardless of where the creds are stored
         self.no_creds = False
 
@@ -41,28 +44,37 @@ class Calendar(MycroftSkill):
             self.password = self.settings.get("password")
             if self.user is None or self.user == "":
                 # Using pw in config
-                account_config = self.config_core.get("calendar", {})
-                self.user = account_config.get("username")
-                self.password = account_config.get("password")
-                self.server_address = account_config.get("server_address")
-                self.port = account_config.get("port")
+                fs = FileSystemAccess(str(self.skill_id))
+                if fs.exists("calendar_conf.yml"):
+                    #  Use yml file for config
+                    config = self.read_file("calendar_conf.yml")
+                    config = yaml.safe_load(config)
+                    self.user = config.get("username")
+                    self.server_address = config.get("server_address")
+                    self.port = config.get("port")
+                    self.password = config.get("password")
+                else:
+                    self.no_creds = True
                 if self.user is None or self.user == "":
                     self.no_creds = True
         elif server_type == "local":  # Use file
             pass
 
-    def initalize(self):
-        """Set up credentials"""
-
         if self.no_creds is True:
             # Not set up in file/home
             self.speak_dialog("setup")
-            return
+            return False
+        return True
 
+
+    def initialize(self):
+        self.update_credentials()
 
     @intent_file_handler('DayAppointment.intent')
     def handle_day_appoint(self, message):
         # clean/get date in utter
+        if self.update_credentials() is False:  # No credentials
+            return
         utter = message.data["utterance"]
         when = extract_datetime(utter)[0]
         if when is None:
@@ -83,6 +95,8 @@ class Calendar(MycroftSkill):
 
     @intent_file_handler('NumAppointments.intent')
     def handle_num_appoint(self, message):
+        if self.update_credentials() is False:  # No credentials
+            return
         # clean/get date in utter
         utter = message.data["utterance"]
         when = extract_datetime(utter)[0]
@@ -103,6 +117,8 @@ class Calendar(MycroftSkill):
 
     @intent_file_handler("AddAppointment.intent")
     def handle_add_appoint(self, message):
+        if self.update_credentials() is False:  # No credentials
+            return
         event = message.data.get("event")
         while not event:
             # We need to get the event

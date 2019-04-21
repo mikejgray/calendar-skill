@@ -86,10 +86,12 @@ class Calendar(MycroftSkill):
         if events:
             # say first
             self.speak_dialog("day", data={"num_events": len(events), "event": events[0].get("event"),
-                                           "when": nice_when})
+                                           "when": nice_when,
+                                           "time": nice_time(events[0].get("datetime"), use_ampm=True)})
             # Say follow up
             for x in range(1, len(events)):
-                self.speak_dialog("day.followed", data={"event": events[x].get("event")})
+                self.speak_dialog("day.followed", data={"event": events[x].get("event"),
+                                                        "time": nice_time(events[x].get("datetime"), use_ampm=True)})
         elif events is None or events == []:
             self.speak_dialog("no.events", data={"when": nice_when})
 
@@ -119,6 +121,7 @@ class Calendar(MycroftSkill):
     def handle_add_appoint(self, message):
         if self.update_credentials() is False:  # No credentials
             return
+
         event = message.data.get("event")
         while not event:
             # We need to get the event
@@ -130,7 +133,7 @@ class Calendar(MycroftSkill):
             utterance = self.get_response("new.event.date")
             date, rest = extract_datetime(utterance)
 
-        self.log.info(" Calendar skill new event: date: " + str(date) + " event: " + event)
+        self.log.info("Calendar skill new event: date: " + str(date) + " event: " + event)
         # ADD EVENT
         if self.server is True:
             # start creating a vevent:
@@ -178,7 +181,7 @@ class Calendar(MycroftSkill):
                 # add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.append(e)
+                c.events.add(e)
                 self.write_file("calendar.ics", str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
 
@@ -220,8 +223,7 @@ class Calendar(MycroftSkill):
                         event_date = cal.vevent.dtstart.value.date()
                         # If in date, append.
                         if event_date == date:
-                            event_dict = {"date": cal.vevent.dtstart.value.date(),
-                                          "time": cal.vevent.dtstart.value.time(),
+                            event_dict = {"datetime": cal.vevent.dtstart.value,
                                           "event": cal.vevent.summary.valueRepr()}
                             events.append(event_dict)
                 return events

@@ -76,9 +76,9 @@ class Calendar(MycroftSkill):
         if self.update_credentials() is False:  # No credentials
             return
         utter = message.data["utterance"]
-        when = extract_datetime(utter)[0]
+        when = extract_datetime(utter, datetime.now(), self.lang)[0]
         if when is None:
-            when = extract_datetime("today")
+            when = extract_datetime("today", datetime.now(), self.lang)
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
@@ -101,9 +101,9 @@ class Calendar(MycroftSkill):
             return
         # clean/get date in utter
         utter = message.data["utterance"]
-        when = extract_datetime(utter)[0]
+        when = extract_datetime(utter, datetime.now(), self.lang)[0]
         if when is None:
-            when = extract_datetime("today")
+            when = extract_datetime("today", datetime.now(), self.lang)
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
@@ -131,7 +131,7 @@ class Calendar(MycroftSkill):
         date, rest = extract_datetime(utterance, datetime.now(), self.lang)
         while rest == normalize(utterance):
             utterance = self.get_response("new.event.date")
-            date, rest = extract_datetime(utterance)
+            date, rest = extract_datetime(utterance, datetime.now(), self.lang)
 
         self.log.info("Calendar skill new event: date: " + str(date) + " event: " + event)
         # ADD EVENT

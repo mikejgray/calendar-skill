@@ -82,7 +82,7 @@ class Calendar(MycroftSkill):
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
-        nice_when = nice_date(when, now=now_local())
+        nice_when = nice_date(when, now=now_local(), lang=self.lang)
         if events:
             # say first
             self.speak_dialog("day", data={"num_events": len(events), "event": events[0].get("event"),
@@ -107,7 +107,7 @@ class Calendar(MycroftSkill):
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
-        nice_when = nice_date(when, now=now_local())
+        nice_when = nice_date(when, now=now_local(), lang=self.lang)
         if events:
             num_events = len(events)
             if num_events == 1:
@@ -132,6 +132,13 @@ class Calendar(MycroftSkill):
         while rest == normalize(utterance):
             utterance = self.get_response("new.event.date")
             date, rest = extract_datetime(utterance, datetime.now(), self.lang)
+
+        # Clean the date being in the event
+        # Get the datetime object in the text
+        test_date, rest = extract_datetime(event, datetime.now(), self.lang)
+        if test_date is not None:
+            date_said = event.replace(rest, '')
+            event = event.replace(date_said, '')
 
         self.log.info("Calendar skill new event: date: " + str(date) + " event: " + event)
         # ADD EVENT

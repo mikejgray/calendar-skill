@@ -17,7 +17,8 @@ from mycroft.util.parse import extract_datetime, normalize
 from mycroft.util.format import nice_time, nice_date, nice_date_time
 from mycroft.util.time import to_local, now_local
 from mycroft.filesystem import FileSystemAccess
-from datetime import datetime, date, time, timedelta
+# from datetime import datetime, date, time, timedelta
+import datetime
 import caldav
 import vobject
 import ics
@@ -25,6 +26,7 @@ import arrow
 from caldav.elements import dav, cdav
 import yaml
 import time
+
 
 class Calendar(MycroftSkill):
     def __init__(self):
@@ -66,7 +68,6 @@ class Calendar(MycroftSkill):
             return False
         return True
 
-
     def initialize(self):
         self.update_credentials()
 
@@ -76,9 +77,9 @@ class Calendar(MycroftSkill):
         if self.update_credentials() is False:  # No credentials
             return
         utter = message.data["utterance"]
-        when = extract_datetime(utter, datetime.now(), self.lang)[0]
+        when = extract_datetime(utter, datetime.datetime.now(), self.lang)[0]
         if when is None:
-            when = extract_datetime("today", datetime.now(), self.lang)
+            when = extract_datetime("today", datetime.datetime.now(), self.lang)
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
@@ -101,9 +102,9 @@ class Calendar(MycroftSkill):
             return
         # clean/get date in utter
         utter = message.data["utterance"]
-        when = extract_datetime(utter, datetime.now(), self.lang)[0]
+        when = extract_datetime(utter, datetime.datetime.now(), self.lang)[0]
         if when is None:
-            when = extract_datetime("today", datetime.now(), self.lang)
+            when = extract_datetime("today", datetime.datetime.now(), self.lang)
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
@@ -128,17 +129,27 @@ class Calendar(MycroftSkill):
             event = self.get_response("new.event.name")
 
         utterance = message.data['utterance']
-        date, rest = extract_datetime(utterance, datetime.now(), self.lang)
+        date, rest = extract_datetime(utterance, datetime.datetime.now(), self.lang)
         while rest == normalize(utterance):
             utterance = self.get_response("new.event.date")
-            date, rest = extract_datetime(utterance, datetime.now(), self.lang)
+            date, rest = extract_datetime(utterance, datetime.datetime.now(), self.lang)
 
         # Clean the date being in the event
-        # Get the datetime object in the text
-        test_date, rest = extract_datetime(event, datetime.now(), self.lang)
+        test_date, rest = extract_datetime(event, datetime.datetime.now(), self.lang)
         if test_date is not None:
             date_said = event.replace(rest, '')
             event = event.replace(date_said, '')
+
+        # Check that there is a time - ask for one if there isn't
+        if not self.check_for_time(date):
+            time = None
+            # No time- ask
+            while self.check_for_time(time) is False:
+                time = self.get_response("new.event.time", data={"event": event})
+                time, _ = extract_datetime(time)
+
+            # user said date: add to date object
+            date = datetime.datetime.combine(date.date(), time.time())
 
         self.log.info("Calendar skill new event: date: " + str(date) + " event: " + event)
         # ADD EVENT
@@ -208,8 +219,8 @@ class Calendar(MycroftSkill):
                 calendar = self.read_file("calendar.ics")
                 c = ics.Calendar(imports=calendar)
                 for event in c.timeline.on(day=arrow.get(date)):
-                        event_dict = {"datetime": event.begin.datetime, "event": event.name}
-                        events.append(event_dict)
+                    event_dict = {"datetime": event.begin.datetime, "event": event.name}
+                    events.append(event_dict)
                 return events
             else:
                 return []
@@ -240,7 +251,18 @@ class Calendar(MycroftSkill):
                 return None
 
         else:
-            raise("Wrong input")
+            raise ("Wrong input")
+
+    def check_for_time(self, dt):
+        """Check for if there is a datetime object
+        dt: datetime object
+        Output:
+        True if there is a time
+        False for no time"""
+        try:
+            return not dt.time() == datetime.time(0)
+        except:  # nopep8
+            return False
 
     def read_file(self, filename):
         fs = FileSystemAccess(str(self.skill_id))

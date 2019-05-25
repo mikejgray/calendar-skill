@@ -1,4 +1,0 @@
-vobject
-ics
-caldav
-pyyaml

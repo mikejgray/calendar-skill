@@ -1,0 +1,5 @@
+{
+    "expected_dialog": "error.logging.in",
+    "intent_type": "NumAppointments.intent",
+    "utterance": "how many events do I have"
+}

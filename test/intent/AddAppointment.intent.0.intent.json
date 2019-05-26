@@ -1,0 +1,5 @@
+{
+    "expected_dialog": "error.logging.in",
+    "intent_type": "AddAppointment.intent",
+    "utterance": "add a event"
+}

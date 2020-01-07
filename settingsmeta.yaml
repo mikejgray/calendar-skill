@@ -24,9 +24,9 @@ skillMetadata:
           value: ""
         - name: port
           type: number
-          label: Password
+          label: Port
           value: ""
         - name: server_address
           type: text
-          label: address
+          label: URL
           value: ""

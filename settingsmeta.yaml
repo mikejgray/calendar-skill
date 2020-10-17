@@ -29,3 +29,24 @@ skillMetadata:
           type: text
           label: URL
           value: ""
+    - name: CalDav Login
+      fields:
+        - type: label
+          label: <b>If you selected CalDav</b> from above, fill out the form here to connect Mycroft to your CalDav account like Nextcloud.
+        - name: username
+          type: text
+          label: Username
+          value: ""
+        - name: password
+          type: password
+          label: Password
+          value: ""
+        - name: port
+          type: number
+          label: Port
+          value: ""
+        - name: server_address
+          type: text
+          label: URL
+          value: ""
+

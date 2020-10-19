@@ -9,10 +9,10 @@ skillMetadata:
           label: Calendar Location
           value: "local"
           options: Locally on the device|local;iCal Server|server
-    - name: iCal Login
+    - name: Calendar Service
       fields:
         - type: label
-          label: <b>If you selected iCal Server</b> above, fill out the form here, to connect Mycroft to your iCal account. If you wish not to enter this information in here, you can <a href='https://bit.ly/mycroft-calendar-local'>configure the skill on your device</a>
+          label: <b>If you selected iCal Server</b> above, fill out the form here, to connect Mycroft to your iCal account. If you wish not to enter this information in here, you can <a href='https://bit.ly/mycroft-calendar-local'>configure the skill on your device</a> If you have a self-hosted calendar that supports CalDav, you can enter the information for that calendar here.
         - name: username
           type: text
           label: Username
@@ -29,24 +29,3 @@ skillMetadata:
           type: text
           label: URL
           value: ""
-    - name: CalDav Login
-      fields:
-        - type: label
-          label: <b>If you selected CalDav</b> from above, fill out the form here to connect Mycroft to your CalDav account like Nextcloud.
-        - name: username
-          type: text
-          label: Username
-          value: ""
-        - name: password
-          type: password
-          label: Password
-          value: ""
-        - name: port
-          type: number
-          label: Port
-          value: ""
-        - name: server_address
-          type: text
-          label: URL
-          value: ""
-

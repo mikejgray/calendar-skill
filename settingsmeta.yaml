@@ -8,11 +8,11 @@ skillMetadata:
           type: select
           label: Calendar Location
           value: "local"
-          options: Locally on the device|local;iCal Server|server
-    - name: Calendar Service
+          options: Locally on the device|local;iCal Calendar Service|server
+    - name: iCal Calendar Service
       fields:
         - type: label
-          label: <b>If you selected iCal Server</b> above, fill out the form here, to connect Mycroft to your iCal account. If you wish not to enter this information in here, you can <a href='https://bit.ly/mycroft-calendar-local'>configure the skill on your device</a> If you have a self-hosted calendar that supports CalDav, you can enter the information for that calendar here.
+          label: <b>If you selected iCal Calendar Service</b> above, fill out the form here, to connect Mycroft to your iCal account. If you wish not to enter this information in here, you can <a href='https://bit.ly/mycroft-calendar-local'>configure the skill on your device</a>
         - name: username
           type: text
           label: Username

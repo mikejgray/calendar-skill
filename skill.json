@@ -3,7 +3,7 @@
     "url": "https://github.com/mikejgray/calendar-skill",
     "summary": "Access your Calendar",
     "short_description": "Access your Calendar",
-    "description": "With this skill, you can access your iCal server, or just use a [local calendar on your device](https://bit.ly/mycroft-calendar-ics), that doesn't sync anywhere. This skill needs configuration if your use an iCal server. You can (if you're technical) use a local file and not store your server credentials with Mycroft Home, if you follow the instructions [here](https://bit.ly/mycroft-calendar-local).",
+    "description": "With this skill, you can access your iCal server, or just use a [local calendar on your device](https://bit.ly/mycroft-calendar-ics), that doesn't sync anywhere. This skill needs configuration if your use an iCal server.",
     "examples": [
         "What's on my calendar?",
         "Add a event",
@@ -54,9 +54,8 @@
         "server"
     ],
     "credits": [
-        "Linus",
-        "S",
-        "(@LinusS1)"
+        "- Linus S (@LinusS1)",
+        "- Mike Gray (@mikejgray), revival"
     ],
     "skillname": "calendar-skill",
     "authorname": "mikejgray",

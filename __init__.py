@@ -1,3 +1,8 @@
+# TODO: Remove unused OVOS imports
+from ovos_workshop.decorators import intent_handler
+from ovos_workshop.skills import OVOSSkill
+from ovos_utils.intents import IntentBuilder
+from ovos_bus_client.message import Message
 # Copyright 2018 Linus S
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +17,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mycroft import MycroftSkill, intent_file_handler
-from mycroft.util.parse import extract_datetime, normalize
-from mycroft.util.format import nice_time, nice_date, nice_date_time
-from mycroft.util.time import to_local, now_local
-from mycroft.filesystem import FileSystemAccess
+# TODO: Remove all Mycroft imports
+# from mycroft import MycroftSkill, intent_file_handler
+# TODO: Remove all Mycroft imports
+# from mycroft.util.parse import extract_datetime, normalize
+# TODO: Remove all Mycroft imports
+# from mycroft.util.format import nice_time, nice_date, nice_date_time
+# TODO: Remove all Mycroft imports
+# from mycroft.util.time import to_local, now_local
+# TODO: Remove all Mycroft imports
+# from mycroft.filesystem import FileSystemAccess
 # from datetime import datetime, date, time, timedelta
 import datetime
 import caldav
@@ -28,7 +38,7 @@ import yaml
 import time
 
 
-class Calendar(MycroftSkill):
+class Calendar(OVOSSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
 
@@ -279,5 +289,6 @@ class Calendar(MycroftSkill):
         return True
 
 
+# TODO: Remove create_skill() function
 def create_skill():
     return Calendar()

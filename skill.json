@@ -1,1 +1,64 @@
-{}
+{
+    "title": "Calendar",
+    "url": "https://github.com/mikejgray/calendar-skill",
+    "summary": "Access your Calendar",
+    "short_description": "Access your Calendar",
+    "description": "With this skill, you can access your iCal server, or just use a [local calendar on your device](https://bit.ly/mycroft-calendar-ics), that doesn't sync anywhere. This skill needs configuration if your use an iCal server. You can (if you're technical) use a local file and not store your server credentials with Mycroft Home, if you follow the instructions [here](https://bit.ly/mycroft-calendar-local).",
+    "examples": [
+        "What's on my calendar?",
+        "Add a event",
+        "How many events do I have?",
+        "What's on my Almanac?",
+        "Add a event call Bob's birthday."
+    ],
+    "desktopFile": false,
+    "warning": "",
+    "systemDeps": false,
+    "requirements": {
+        "python": [
+            "arrow",
+            "caldav",
+            "ics",
+            "ovos-lingua-franca",
+            "ovos-plugin-manager",
+            "ovos-utils",
+            "ovos-workshop",
+            "pyyaml",
+            "vobject"
+        ],
+        "system": {
+            "all": "libxml2-dev libxslt-dev python-dev python3-lxml"
+        },
+        "skill": []
+    },
+    "incompatible_skills": [],
+    "platforms": [
+        "i386",
+        "x86_64",
+        "ia64",
+        "arm64",
+        "arm"
+    ],
+    "branch": "master",
+    "license": "Unknown",
+    "icon": "https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/calendar-day.svg",
+    "category": "Productivity",
+    "categories": [
+        "Daily",
+        "Information",
+        "Productivity"
+    ],
+    "tags": [
+        "calendar",
+        "ical",
+        "server"
+    ],
+    "credits": [
+        "Linus",
+        "S",
+        "(@LinusS1)"
+    ],
+    "skillname": "calendar-skill",
+    "authorname": "mikejgray",
+    "foldername": null
+}

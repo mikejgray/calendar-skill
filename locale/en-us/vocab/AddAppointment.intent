@@ -4,9 +4,9 @@
 (add|create|make a new|new|schedule)( a new | a | an | )appointment on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme) for
 (add|create|make a new|new|schedule)( a new | a | an | )(event|appointment) for
 (add|create|make a new|new|schedule)( a new | a | an | )appointment.
-(add|create|make a new|new|schedule) {{event}} to my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme).
-(add|create|make a new|new|schedule) {{event}} to my schedule on 
-(add|create|make a new|new|schedule)( a new | a | an | )(event|appointment) called {{event}}.
+(add|create|make a new|new|schedule) {event} to my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme).
+(add|create|make a new|new|schedule) {event} to my schedule on 
+(add|create|make a new|new|schedule)( a new | a | an | )(event|appointment) called {event}.
 (add|create|make a new|new|schedule)( a new | a | an | )(event|appointment).
 (add|create|make a new|new|schedule)( a new | a | an | )(event|appointment)
-(add|create|make a new|new|schedule) an (event|appointment) called {{event}}
+(add|create|make a new|new|schedule) an (event|appointment) called {event}

@@ -1,5 +1,12 @@
 {
   "type": "@mikejgray/ovos-skill-projen.OVOSSkillProject",
   "name": "calendar-skill",
-  "retrofit": true
+  "retrofit": true,
+  "author": "Mike Gray",
+  "authorAddress": "mike@graywind.org",
+  "authorHandle": "mikejgray",
+  "repositoryUrl": "https://github.com/mikejgray/calendar-skill",
+  "packageDir": ".",
+  "skillClass": "CalendarSkill",
+  "license": "Apache-2.0"
 }

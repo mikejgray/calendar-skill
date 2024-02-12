@@ -1,47 +1,37 @@
-# TODO: Remove unused OVOS imports
-from ovos_workshop.decorators import intent_handler
-from ovos_workshop.skills import OVOSSkill
-from ovos_utils.intents import IntentBuilder
-from ovos_bus_client.message import Message
+# pylint: disable=missing-docstring,attribute-defined-outside-init,broad-exception-caught
+# pylint: disable=invalid-name
 # Copyright 2018 Linus S
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# TODO: Remove all Mycroft imports
-# from mycroft import MycroftSkill, intent_file_handler
-# TODO: Remove all Mycroft imports
-# from mycroft.util.parse import extract_datetime, normalize
-# TODO: Remove all Mycroft imports
-# from mycroft.util.format import nice_time, nice_date, nice_date_time
-# TODO: Remove all Mycroft imports
-# from mycroft.util.time import to_local, now_local
-# TODO: Remove all Mycroft imports
-# from mycroft.filesystem import FileSystemAccess
-# from datetime import datetime, date, time, timedelta
+"""Calendar skill for OVOS"""
 import datetime
-import caldav
-import vobject
-import ics
-import arrow
-from caldav.elements import dav, cdav
-import yaml
 import time
 
+import arrow
+import caldav
+import ics
+import vobject
+import yaml
+from ovos_bus_client.message import Message
+from lingua_franca.format import nice_date, nice_time
+from lingua_franca.parse import extract_datetime, normalize
+from ovos_utils.time import now_local
+from ovos_workshop.decorators import intent_handler
+from ovos_workshop.filesystem import FileSystemAccess
+from ovos_workshop.skills import OVOSSkill
 
-class Calendar(OVOSSkill):
-    def __init__(self):
-        MycroftSkill.__init__(self)
 
+class CalendarSkills(OVOSSkill):
     def update_credentials(self):
         self.server = False  # False for an ics file, true for a caldav server -regardless of where the creds are stored
         self.no_creds = False
@@ -81,8 +71,8 @@ class Calendar(OVOSSkill):
     def initialize(self):
         self.update_credentials()
 
-    @intent_file_handler('DayAppointment.intent')
-    def handle_day_appoint(self, message):
+    @intent_handler('DayAppointment.intent')
+    def handle_day_appoint(self, message: Message):
         # clean/get date in utter
         if self.update_credentials() is False:  # No credentials
             return
@@ -106,8 +96,8 @@ class Calendar(OVOSSkill):
         elif events is None or events == []:
             self.speak_dialog("no.events", data={"when": nice_when})
 
-    @intent_file_handler('NumAppointments.intent')
-    def handle_num_appoint(self, message):
+    @intent_handler('NumAppointments.intent')
+    def handle_num_appoint(self, message: Message):
         if self.update_credentials() is False:  # No credentials
             return
         # clean/get date in utter
@@ -128,8 +118,8 @@ class Calendar(OVOSSkill):
         elif events is None or events == []:
             self.speak_dialog("no.events", data={"when": nice_when})
 
-    @intent_file_handler("AddAppointment.intent")
-    def handle_add_appoint(self, message):
+    @intent_handler("AddAppointment.intent")
+    def handle_add_appoint(self, message: Message):
         if self.update_credentials() is False:  # No credentials
             return
 
@@ -152,16 +142,15 @@ class Calendar(OVOSSkill):
 
         # Check that there is a time - ask for one if there isn't
         if not self.check_for_time(date):
-            time = None
+            this_time = None
             # No time- ask
-            while self.check_for_time(time) is False:
-                time = self.get_response("new.event.time", data={"event": event})
-                time, _ = extract_datetime(time)
+            while self.check_for_time(this_time) is False:
+                this_time = self.get_response("new.event.time", data={"event": event})
+                this_time, _ = extract_datetime(this_time)
 
             # user said date: add to date object
             date = datetime.datetime.combine(date.date(), time.time())
-
-        self.log.info("Calendar skill new event: date: " + str(date) + " event: " + event)
+        self.log.info("Calendar skill new event: date: %s event: %s", str(date), event)
         # ADD EVENT
         if self.server is True:
             # start creating a vevent:
@@ -172,17 +161,17 @@ class Calendar(OVOSSkill):
             # add date
             cal.vevent.add('dtstart').value = date
             # add it to the calendar
-            url = "http://{}:{}@{}:{}/".format(self.user, self.password, self.server_address, self.port)
+            url = f"http://{self.user}:{self.password}@{self.server_address}:{self.port}/"
             try:
                 client = caldav.DAVClient(url)
                 principal = client.principal()
 
                 # Select calendar
-                events = []
                 for calendar in principal.calendars():
                     calendar.add_event(str(cal.serialize()))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
-            except:
+            except Exception as err:
+                self.log.error(err)
                 self.speak_dialog("error.logging.in")
                 return None
 
@@ -199,7 +188,7 @@ class Calendar(OVOSSkill):
                 # add event
                 e.name = str(event)
                 e.begin = str(arrow.get(date))
-                c.events.append(e)
+                c.events.add(e)
                 self.write_file("calendar.ics", str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
             else:
@@ -236,7 +225,7 @@ class Calendar(OVOSSkill):
                 return []
 
         elif self.server is True:
-            url = "http://{}:{}@{}:{}/".format(self.user, self.password, self.server_address, self.port)
+            url = f"http://{self.user}:{self.password}@{self.server_address}:{self.port}/"
 
             try:
                 client = caldav.DAVClient(url)
@@ -256,12 +245,13 @@ class Calendar(OVOSSkill):
                             events.append(event_dict)
                 return events
 
-            except:
+            except Exception as err:
+                self.log.error("Error logging in: %s", err)
                 self.speak_dialog("error.logging.in")
                 return None
 
         else:
-            raise ("Wrong input")
+            raise ValueError("Wrong input")
 
     def check_for_time(self, dt):
         """Check for if there is a datetime object
@@ -271,7 +261,8 @@ class Calendar(OVOSSkill):
         False for no time"""
         try:
             return not dt.time() == datetime.time(0)
-        except:  # nopep8
+        except Exception as err:
+            self.log.error("Exception caught: %s", err)
             return False
 
     def read_file(self, filename):
@@ -287,8 +278,3 @@ class Calendar(OVOSSkill):
         data_file.writelines(data)
         data_file.close()
         return True
-
-
-# TODO: Remove create_skill() function
-def create_skill():
-    return Calendar()

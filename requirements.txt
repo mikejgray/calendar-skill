@@ -1,10 +1,10 @@
 ovos-utils
-ovos-bus-client
 ovos-workshop
 ovos-plugin-manager
-# Your requirements here
+ovos-lingua-franca
 
 vobject
 ics
 caldav
 pyyaml
+arrow

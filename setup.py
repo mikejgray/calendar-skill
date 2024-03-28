@@ -4,7 +4,7 @@ from os import walk, path
 
 BASEDIR = path.abspath(path.dirname(__file__))
 URL = "https://github.com/mikejgray/calendar-skill"
-SKILL_CLAZZ = "CalendarSkill"  # needs to match __init__.py class name
+SKILL_CLAZZ = "CalendarSkills"  # needs to match __init__.py class name
 PYPI_NAME = "calendar-skill"  # pip install PYPI_NAME
 
 # below derived from github url to ensure standard skill_id

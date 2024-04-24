@@ -59,8 +59,8 @@ class CalendarSkill(BaseCalendarSkill):
         """Clean/get date in utterance"""
         # if self.update_credentials() is False:  # No credentials
         #     return
-        utter = message.data.get("utterance", "")
-        when = extract_datetime(utter)
+        spoken_when = message.data.get("when", "today")
+        when = extract_datetime(spoken_when)
         # get events
         events = self.get_events(when)
         nice_when = nice_date(when, now=now_local(), lang=self.lang)
@@ -82,8 +82,8 @@ class CalendarSkill(BaseCalendarSkill):
                     data={
                         "event": events[x].get("event"),
                         "time": nice_time(
-                            events[x].get("datetime"), use_ampm=True
-                        ),  # TODO: From config
+                            events[x].get("datetime"), use_ampm=True  # TODO: From config
+                        ),
                     },
                 )
         else:
@@ -94,10 +94,8 @@ class CalendarSkill(BaseCalendarSkill):
         if self.update_credentials() is False:  # No credentials
             return
         # clean/get date in utter
-        utter = message.data.get("utterance", "")
-        when = extract_datetime(utter, datetime.datetime.now(), self.lang)[0]
-        if when is None:
-            when = extract_datetime("today", datetime.datetime.now(), self.lang)
+        spoken_when = message.data.get("when", "today")  # TODO: Abstract these two lines
+        when = extract_datetime(spoken_when, datetime.datetime.now(), self.lang)
         self.log.info(str(when))
         # get events
         events = self.get_events(when)
@@ -203,12 +201,14 @@ class CalendarSkill(BaseCalendarSkill):
                 self._write_file(self.local_ics_location, str(c))
                 self.speak_dialog("new.event.summary", data={"event": str(event)})
 
-    def get_events(self, date):
+    def get_events(self, date: datetime.datetime):
         """Get events on a date and return them as a list.
         date: Date object!
         Returns:
         list: {"datetime", "event"}
         """
+        if not date:
+            date = datetime.datetime.now()
         if self.server is True:
             return self._get_remote_events(date)
         return self._get_local_events(date)

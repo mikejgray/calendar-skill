@@ -1,11 +1,2 @@
-what's on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme) for
-what's on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)
-what is on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme) for
-what is on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)
-what is on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme) for
-what's on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)
-what's on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)?
-what's on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)?
-what was on my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)
-what is my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme) for
-what is my (calendar|schedule|agenda|almanac|timeline|itinerary|scheme)
+(what's|what is|what was) on my (calendar|schedule|agenda|timeline|itinerary)(| for )(|{when})
+what (was|is) my (calendar|schedule|agenda|timeline|itinerary)(| for )(|{when})

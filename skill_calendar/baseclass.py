@@ -55,7 +55,7 @@ class BaseCalendarSkill(OVOSSkill):
         Default for OVOS is ~/.local/share/mycroft/filesystem/calendar-skill.mikejgray/calendar.ics
         """
         location = self.settings.get("local_ics_location", f'{get_xdg_data_save_path()}/filesystem/skills/{self.skill_id}')
-        if not location.endswith("calendar.ics"):
+        if not location.endswith(".ics"):
             location = os.path.join(location, "calendar.ics")
         if os.path.exists(location):
             # Check our permissions to see if we can write to it

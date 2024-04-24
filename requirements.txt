@@ -8,3 +8,4 @@ ics
 caldav
 pyyaml
 arrow
+dateparser

@@ -4,7 +4,7 @@ Access your Calendar
 
 ## About
 
-With this skill, you can access your iCal server, or just use a [local calendar on your device](https://bit.ly/mycroft-calendar-ics), that doesn't sync anywhere. This skill needs configuration if your use an iCal server.
+With this skill, you can access your iCal server, or just use a [local calendar on your device](https://bit.ly/mycroft-calendar-ics), that doesn't sync anywhere. This skill needs configuration if you use an iCal server.
 
 ## Examples
 

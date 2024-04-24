@@ -3,16 +3,16 @@ from setuptools import setup
 from os import walk, path
 
 BASEDIR = path.abspath(path.dirname(__file__))
-URL = "https://github.com/mikejgray/calendar-skill"
-SKILL_CLAZZ = "CalendarSkills"  # needs to match __init__.py class name
-PYPI_NAME = "calendar-skill"  # pip install PYPI_NAME
+URL = "https://github.com/mikejgray/skill-calendar"
+SKILL_CLAZZ = "CalendarSkill"  # needs to match __init__.py class name
+PYPI_NAME = "skill-calendar"  # pip install PYPI_NAME
 
 # below derived from github url to ensure standard skill_id
 SKILL_AUTHOR, SKILL_NAME = URL.split(".com/")[-1].split("/")
 SKILL_PKG = SKILL_NAME.lower().replace("-", "_")
 PLUGIN_ENTRY_POINT = f"{SKILL_NAME.lower()}.{SKILL_AUTHOR.lower()}={SKILL_PKG}:{SKILL_CLAZZ}"
 # skill_id=package_name:SkillClass
-BASE_PATH = BASE_PATH = path.abspath(path.join(path.dirname(__file__), "."))
+BASE_PATH = BASE_PATH = path.abspath(path.join(path.dirname(__file__), "skill_calendar"))
 
 
 def get_version():
@@ -71,7 +71,7 @@ setup(
     author="Mike Gray",
     author_email="mike@graywind.org",
     license="Apache-2.0",
-    package_dir={SKILL_PKG: "."},
+    package_dir={SKILL_PKG: "skill_calendar"},
     package_data={SKILL_PKG: find_resource_files()},
     packages=[SKILL_PKG],
     include_package_data=True,

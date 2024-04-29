@@ -19,6 +19,7 @@
 import datetime
 import os
 import time
+from typing import Optional
 
 import arrow
 import caldav
@@ -60,7 +61,7 @@ class CalendarSkill(BaseCalendarSkill):
         # if self.update_credentials() is False:  # No credentials
         #     return
         spoken_when = message.data.get("when", "today")
-        when = extract_datetime(spoken_when)
+        when = self._retrieve_datetime(spoken_when)
         # get events
         events = self.get_events(when)
         nice_when = nice_date(when, now=now_local(), lang=self.lang)
@@ -76,13 +77,14 @@ class CalendarSkill(BaseCalendarSkill):
                 },
             )
             # Say follow up
-            for x in range(1, len(events)):
+            for evt in range(1, len(events)):
                 self.speak_dialog(
                     "day.followed",
                     data={
-                        "event": events[x].get("event"),
+                        "event": events[evt].get("event"),
                         "time": nice_time(
-                            events[x].get("datetime"), use_ampm=True  # TODO: From config
+                            events[evt].get("datetime"),
+                            use_ampm=self.config_core["time_format"] == "half",
                         ),
                     },
                 )
@@ -94,9 +96,9 @@ class CalendarSkill(BaseCalendarSkill):
         if self.update_credentials() is False:  # No credentials
             return
         # clean/get date in utter
-        spoken_when = message.data.get("when", "today")  # TODO: Abstract these two lines
-        when = extract_datetime(spoken_when, datetime.datetime.now(), self.lang)
-        self.log.info(str(when))
+        spoken_when = message.data.get("when", "today")
+        when = self._retrieve_datetime(spoken_when)
+        self.log.debug(str(when))
         # get events
         events = self.get_events(when)
         nice_when = nice_date(when, now=now_local(), lang=self.lang)
@@ -111,28 +113,35 @@ class CalendarSkill(BaseCalendarSkill):
         elif events is None or events == []:
             self.speak_dialog("no.events", data={"when": nice_when})
 
-    @intent_handler("AddAppointment.intent")
-    def handle_add_appoint(self, message: Message):
-        # TODO: Refactor, this is a mess
-        if self.update_credentials() is False:  # No credentials
+    @intent_handler("NextAppointment.intent")
+    def handle_next_appoint(self, message: Message):
+        events = self._next_x_events(100)
+        if not events:
+            self.speak_dialog("no.events.found", data={})
+            return
+        next_timed_event = self._find_next_timed_event(events)
+        next_all_day_event = self._find_next_all_day_event(events)
+        if next_timed_event:
+            self.speak_dialog(
+                "next.event",
+                data={
+                    "event": next_timed_event.name,
+                    "when": nice_time(next_timed_event.begin),
+                },
+            )
+            return
+        if not next_timed_event and next_all_day_event:
+            self.speak_dialog(
+                "next.all.day.event", data={"event": next_all_day_event.name}
+            )
             return
 
-        event = message.data.get("event")
-        while not event:
-            # We need to get the event
-            event = self.get_response("new.event.name")
-
-        utterance = message.data["utterance"]
-        date, rest = extract_datetime(utterance, datetime.datetime.now(), self.lang)
-        while rest == normalize(utterance):
-            utterance = self.get_response("new.event.date")
-            date, rest = extract_datetime(utterance, datetime.datetime.now(), self.lang)
-
+    @intent_handler("AddAppointment.intent")
+    def handle_add_appoint(self, message: Message):
+        event = self._get_event_at_all_costs(message)
+        date = self._extract_event_datetime(message)
         # Clean the date being in the event
-        test_date, rest = extract_datetime(event, datetime.datetime.now(), self.lang)
-        if test_date is not None:
-            date_said = event.replace(rest, "")
-            event = event.replace(date_said, "")
+        event = self._clean_event_dates(event)
 
         # Check that there is a time - ask for one if there isn't
         if not self.check_for_time(date):
@@ -146,62 +155,67 @@ class CalendarSkill(BaseCalendarSkill):
             date = datetime.datetime.combine(date.date(), time.time())
         self.log.info("Calendar skill new event: date: %s event: %s", str(date), event)
         # ADD EVENT
+        if self.server is False:
+            self._add_event_to_calendar(event, date)
+            self.speak_dialog("new.event.summary", data={"event": str(event)})
         if self.server is True:
-            # start creating a vevent:
-            cal = vobject.iCalendar()
-            cal.add("vevent")
-            # add name
-            cal.vevent.add("summary").value = str(event)
-            # add date
-            cal.vevent.add("dtstart").value = date
-            # add it to the calendar
-            url = (
-                f"http://{self.user}:{self.password}@{self.server_address}:{self.port}/"
-            )
-            try:
-                client = caldav.DAVClient(url)
-                principal = client.principal()
+            self.log.warning("Server not yet implemented, sorry!")
 
-                # Select calendar
-                for calendar in principal.calendars():
-                    calendar.add_event(str(cal.serialize()))
-                self.speak_dialog("new.event.summary", data={"event": str(event)})
-            except Exception as err:
-                self.log.error(err)
-                self.speak_dialog("error.logging.in")
-                return None
+    def _add_event_to_calendar(self, event, date):
+        e = ics.Event()
+        # add event
+        e.name = str(event)
+        e.begin = str(arrow.get(date))
+        self.log.debug("Adding event: %s", e.serialize())
+        self.calendar.events.add(e)
 
-        elif self.server is False:
-            # TODO: Refactor this, too much repeated code
-            # Local
-            # The calendar is on the device
-            # Check if it needs to be made...
-            if os.path.exists(self.local_ics_location):
-                # YAY! exists
-                calendar = self._read_file(self.local_ics_location)
-                c = ics.Calendar(imports=calendar)
-                e = ics.Event()
-                # add event
-                e.name = str(event)
-                e.begin = str(arrow.get(date))
-                c.events.add(e)
-                self._write_file(self.local_ics_location, str(c))
-                self.speak_dialog("new.event.summary", data={"event": str(event)})
-            else:
-                # create calendar
-                c = ics.Calendar()
-                e = ics.Event()
-                # add event
-                e.name = str(event)
-                e.begin = str(arrow.get(date))
-                c.events.add(e)
-                os.makedirs(
-                    self.local_ics_location
-                )  # TODO: Parse out the directory better
-                self._write_file(self.local_ics_location, str(c))
-                self.speak_dialog("new.event.summary", data={"event": str(event)})
+    def _clean_event_dates(self, event):
+        test_date = extract_datetime(event, datetime.datetime.now(), self.lang)
+        if test_date is not None:
+            date_said = event.replace(rest, "")
+            event = event.replace(date_said, "")
+        return event
 
-    def get_events(self, date: datetime.datetime):
+    def _extract_event_datetime(self, message):
+        utterance = message.data.get("utterance")
+        date, rest = extract_datetime(utterance, datetime.datetime.now(), self.lang)
+        while rest == normalize(utterance):
+            utterance = self.get_response("new.event.date")
+            date, rest = extract_datetime(utterance, datetime.datetime.now(), self.lang)
+        return date
+
+    def _get_event_at_all_costs(self, message):
+        event = message.data.get("event")
+        while not event:
+            # We need to get the event
+            event = self.get_response("new.event.name")
+        return event
+        # return self.add_caldav_event(event, date)
+
+    def add_caldav_event(self, event, date):
+        # start creating a vevent:
+        cal = vobject.iCalendar()
+        cal.add("vevent")
+        # add name
+        cal.vevent.add("summary").value = str(event)
+        # add date
+        cal.vevent.add("dtstart").value = date
+        # add it to the calendar
+        url = f"http://{self.user}:{self.password}@{self.server_address}:{self.port}/"
+        try:
+            client = caldav.DAVClient(url)
+            principal = client.principal()
+
+            # Select calendar
+            for calendar in principal.calendars():
+                calendar.add_event(str(cal.serialize()))
+            self.speak_dialog("new.event.summary", data={"event": str(event)})
+        except Exception as err:
+            self.log.error(err)
+            self.speak_dialog("error.logging.in")
+            return None
+
+    def get_events(self, date: Optional[datetime.datetime]):
         """Get events on a date and return them as a list.
         date: Date object!
         Returns:
@@ -240,6 +254,14 @@ class CalendarSkill(BaseCalendarSkill):
         except:
             self.log.exception("Error writing to file %s", filepath)
             return False
+
+    def _retrieve_datetime(self, spoken_when):
+        when = extract_datetime(spoken_when)
+        if isinstance(when, list) and len(when):
+            when = when[0]
+        else:
+            when = datetime.datetime.now()
+        return when
 
     def _extract_datetime(self, utter: str) -> datetime.datetime:
         when = extract_datetime(utter, datetime.datetime.now(), self.lang)
@@ -289,8 +311,7 @@ class CalendarSkill(BaseCalendarSkill):
             events.append(event_dict)
         return events or []
 
-    def _get_remote_events(self, date):
-        # TODO: Refactor all this remote stuff
+    def _get_remote_events(self, date):  # TODO: Refactor all this remote stuff
         url = f"http://{self.user}:{self.password}@{self.server_address}:{self.port}/"
 
         try:
@@ -326,6 +347,19 @@ class CalendarSkill(BaseCalendarSkill):
         self.port = config.get("port", self.port)
         self.password = config.get("password", self.password)
 
+    def _find_next_timed_event(self, events: list[ics.Event]) -> Optional[ics.Event]:
+        timed_event = [x for x in events if not x.all_day]
+        return timed_event[0] if len(timed_event) else None
+
+    def _find_next_all_day_event(self, events: list[ics.Event]) -> Optional[ics.Event]:
+        timed_event = [x for x in events if x.all_day]
+        return timed_event[0] if len(timed_event) else None
+
+    def _next_x_events(self, num_events: int) -> list[ics.Event]:
+        return list(
+            self.calendar.timeline.start_after(arrow.get(datetime.datetime.now()))
+        )[:num_events]
+
 
 if __name__ == "__main__":
     x = CalendarSkill(
@@ -335,5 +369,12 @@ if __name__ == "__main__":
             "local_ics_location": "/Users/Mike/.config/mycroft/skills/skill-calendar.mikejgray/calendar.ics"
         },
     )
-    x._get_local_events(datetime.datetime.now())
-    x._get_local_events(extract_datetime("what is on my calendar tomorrow?"))
+    # x._get_local_events(datetime.datetime.now())
+    # x._get_local_events(extract_datetime("what is on my calendar tomorrow?"))
+    # x.handle_next_appoint(None)
+    x.handle_add_appoint(
+        Message(
+            "blah.blah",
+            {"event": "test event", "utterance": "schedule test event tomorrow at 3pm"},
+        )
+    )
